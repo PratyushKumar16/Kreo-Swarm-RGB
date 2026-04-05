@@ -28,11 +28,11 @@ OPTIONS = {
     'packages': ['customtkinter', 'swarmkreo', 'darkdetect'],
     'includes': ['tkinter', 'hid'], # Moved hid to includes
     'plist': {
-        'CFBundleName': "Kreo Swarm RGB",
+        'CFBundleName': "KreoSwarmRGB",
         'CFBundleDisplayName': "Kreo Swarm RGB",
-        'CFBundleIdentifier': "com.pratyush.kreo-backlight",
-        'CFBundleVersion': "0.1.0",
-        'CFBundleShortVersionString': "0.1.0",
+        'CFBundleIdentifier': "com.pratyush.kreoswarmrgb",
+        'CFBundleVersion': "0.1.1",
+        'CFBundleShortVersionString': "0.1.1",
         'NSHighResolutionCapable': True,
     }
 }

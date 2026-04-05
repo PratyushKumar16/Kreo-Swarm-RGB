@@ -1,3 +1,4 @@
+import bundle_fix # Must be first to set environment variables for bundled app
 import customtkinter as ctk
 from swarmkreo.controller import KreoController
 import tkinter as tk

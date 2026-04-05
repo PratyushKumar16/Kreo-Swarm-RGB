@@ -24,16 +24,17 @@ for root, dirs, files in os.walk(ctk_path):
         DATA_FILES.append((dest_dir, [os.path.join(src_dir, f) for f in os.listdir(src_dir) if os.path.isfile(os.path.join(src_dir, f))]))
 
 OPTIONS = {
-    'argv_emulation': True,
-    'packages': ['customtkinter', 'swarmkreo', 'darkdetect'],
-    'includes': ['tkinter', 'hid'], # Moved hid to includes
+    'argv_emulation': False, # Disabled: known to cause crashes on newer macOS versions
+    'packages': ['customtkinter', 'swarmkreo', 'darkdetect', 'hid'],
+    'includes': ['tkinter'],
     'plist': {
         'CFBundleName': "KreoSwarmRGB",
         'CFBundleDisplayName': "Kreo Swarm RGB",
         'CFBundleIdentifier': "com.pratyush.kreoswarmrgb",
-        'CFBundleVersion': "0.1.1",
-        'CFBundleShortVersionString': "0.1.1",
+        'CFBundleVersion': "0.1.2",
+        'CFBundleShortVersionString': "0.1.2",
         'NSHighResolutionCapable': True,
+        'LSBackgroundOnly': False,
     }
 }
 

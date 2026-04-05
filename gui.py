@@ -8,6 +8,12 @@ class KreoGUI(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+        # Fix for macOS menu crash in bundled apps
+        try:
+            self.create_macos_menu()
+        except:
+            pass
+
         self.controller = KreoController()
 
         self.title("Kreo Swarm RGB Controller")
@@ -19,6 +25,16 @@ class KreoGUI(ctk.CTk):
         self.r, self.g, self.b = 255, 0, 0
 
         self.setup_ui()
+
+    def create_macos_menu(self):
+        # Create a dummy menu to satisfy macOS requirements in bundled apps
+        menubar = tk.Menu(self)
+        try:
+            app_menu = tk.Menu(menubar, name='apple')
+            menubar.add_cascade(menu=app_menu)
+        except:
+            pass
+        self.config(menu=menubar)
 
     def setup_ui(self):
         # Title

@@ -10,7 +10,7 @@ class KreoGUI(ctk.CTk):
         self.controller = KreoController()
 
         self.title("Kreo Swarm RGB Controller")
-        self.geometry("500x400")
+        self.geometry("600x500")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -21,32 +21,36 @@ class KreoGUI(ctk.CTk):
 
     def setup_ui(self):
         # Title
-        self.label = ctk.CTkLabel(self, text="Kreo Swarm Backlight", font=ctk.CTkFont(size=24, weight="bold"))
-        self.label.pack(pady=20)
+        self.label = ctk.CTkLabel(self, text="Kreo Swarm Backlight", font=ctk.CTkFont(size=28, weight="bold"))
+        self.label.pack(pady=(30, 20))
 
         # Color Preview
-        self.color_preview = ctk.CTkFrame(self, width=100, height=100, corner_radius=10, fg_color=self.selected_color)
+        self.color_preview = ctk.CTkFrame(self, width=120, height=120, corner_radius=15, fg_color=self.selected_color)
         self.color_preview.pack(pady=10)
 
         # Color Button
-        self.color_button = ctk.CTkButton(self, text="Pick Color", command=self.pick_color)
-        self.color_button.pack(pady=10)
+        self.color_button = ctk.CTkButton(self, text="Pick Color", command=self.pick_color, 
+                                           width=220, height=50, font=ctk.CTkFont(size=16))
+        self.color_button.pack(pady=15)
 
         # Mode Selection
-        self.mode_label = ctk.CTkLabel(self, text="Lighting Mode:")
-        self.mode_label.pack(pady=(10, 0))
+        self.mode_label = ctk.CTkLabel(self, text="Lighting Mode:", font=ctk.CTkFont(size=14))
+        self.mode_label.pack(pady=(15, 5))
         
         self.mode_var = ctk.StringVar(value="Static")
-        self.mode_menu = ctk.CTkOptionMenu(self, values=["Static", "Breathing", "Wave", "Reactive", "Off"], variable=self.mode_var)
+        self.mode_menu = ctk.CTkOptionMenu(self, values=["Static", "Breathing", "Wave", "Reactive", "Off"], 
+                                           variable=self.mode_var, width=220, height=45, font=ctk.CTkFont(size=15))
         self.mode_menu.pack(pady=5)
 
         # Status Label
-        self.status_label = ctk.CTkLabel(self, text="Ready", text_color="gray")
-        self.status_label.pack(pady=10)
+        self.status_label = ctk.CTkLabel(self, text="Ready", text_color="gray", font=ctk.CTkFont(size=14))
+        self.status_label.pack(pady=15)
 
         # Apply Button
-        self.apply_button = ctk.CTkButton(self, text="Apply Settings", command=self.apply_settings, fg_color="#2ecc71", hover_color="#27ae60")
-        self.apply_button.pack(pady=20)
+        self.apply_button = ctk.CTkButton(self, text="Apply Settings", command=self.apply_settings, 
+                                           fg_color="#2ecc71", hover_color="#27ae60",
+                                           width=280, height=65, font=ctk.CTkFont(size=18, weight="bold"))
+        self.apply_button.pack(pady=25)
 
     def pick_color(self):
         color = colorchooser.askcolor(title="Choose color")[1]
@@ -73,12 +77,16 @@ class KreoGUI(ctk.CTk):
         self.update()
 
         try:
+            print(f"Applying settings: RGB({self.r}, {self.g}, {self.b}), Mode: {mode_hex}")
             success = self.controller.apply_settings(self.r, self.g, self.b, mode_hex)
             if success:
+                print("Settings applied successfully!")
                 self.status_label.configure(text="Success!", text_color="#2ecc71")
             else:
+                print("Failed to apply settings: Device not found.")
                 self.status_label.configure(text="Error: Device not found", text_color="#e74c3c")
         except Exception as e:
+            print(f"Exception during apply: {str(e)}")
             self.status_label.configure(text=f"Error: {str(e)}", text_color="#e74c3c")
 
 if __name__ == "__main__":

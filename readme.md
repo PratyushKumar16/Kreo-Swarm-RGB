@@ -6,6 +6,9 @@ This project provides a modern GUI and CLI to control the backlight of the **Kre
 
 ## Features
 - **Modern GUI:** Built with CustomTkinter for a native macOS/Windows 11 look.
+- **Improved Accessibility:** Large buttons and labels for easier interaction.
+- **Bluetooth Support:** Now supports connecting to Kreo Swarm devices via Bluetooth and wireless dongles.
+- **Flexible Discovery:** Automatically detects Kreo hardware by name if exact VID/PID doesn't match.
 - **Color Picker:** Choose any RGB color for your keyboard.
 - **Mode Selection:** Support for Static, Breathing, Wave, and Reactive modes.
 - **Lightweight:** Minimal dependencies and small installation size.
@@ -15,7 +18,7 @@ This project provides a modern GUI and CLI to control the backlight of the **Kre
 ## Requirements
 
 ### Hardware
-- Kreo Swarm keyboard (USB mode)
+- Kreo Swarm keyboard (USB, Wireless Dongle, or Bluetooth mode)
 
 ### Software
 - Python 3.8+

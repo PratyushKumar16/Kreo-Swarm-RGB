@@ -28,45 +28,45 @@ class KreoController:
             up = d.get("usage_page", 0)
             product = d.get("product_string", "") or ""
             manufacturer = d.get("manufacturer_string", "") or ""
+            interface = d.get("interface_number", -1)
             path = str(d.get("path", ""))
             
             # Check for matches with your specific hardware or strings
             is_kreo_vid = (v == self.VID_1 or v == self.VID_2)
-            is_kreo_str = "Kreo" in product or "Kreo" in manufacturer or "Swarm" in product
-            is_bt = "BT_" in path or "bluetooth" in path.lower()
+            is_kreo_str = any(s in (product + manufacturer) for s in ["Kreo", "Swarm", "Gaming Keyboard"])
             
             if is_kreo_vid or is_kreo_str:
-                # Rank matches: Vendor page is best, then interface 1, then anything else for BT
-                if up >= 0xFF00:
-                    print(f"Found exact vendor interface: {product} at {path}")
+                # Rank matches: Vendor page is best, then interface 1
+                if up == 0xFF00:
+                    print(f"Found exact vendor interface: {product} (VID:{hex(v)}, PID:{hex(p)}) at {path}")
                     return d
-                if d.get("interface_number") == 1:
+                
+                # Interface 1 is the usual control interface for these keyboards
+                if interface == 1:
                     potential_matches.insert(0, d)
-                elif is_bt:
-                    potential_matches.append(d)
                 else:
                     potential_matches.append(d)
         
         if potential_matches:
             match = potential_matches[0]
-            print(f"Using best potential match: {match.get('product_string')} at {match.get('path')}")
+            print(f"Using best potential match: {match.get('product_string')} (Interface {match.get('interface_number')})")
             return match
         
-        print("No Kreo hardware match found. Listing detected devices for debugging:")
-        for d in devices[:15]:
-             print(f" - {d.get('product_string')} (VID:{hex(d.get('vendor_id'))}, PID:{hex(d.get('product_id'))}, UP:{hex(d.get('usage_page',0))})")
+        print("No Kreo hardware match found. Listing first 10 devices:")
+        for d in devices[:10]:
+             print(f" - {d.get('product_string')} (VID:{hex(d.get('vendor_id'))}, PID:{hex(d.get('product_id'))}, UP:{hex(d.get('usage_page',0))}, IF:{d.get('interface_number')})")
         
         return None
 
     def connect(self):
         dev_info = self.find_device()
         if not dev_info:
-            print("Kreo hardware not detected. Check USB connection.")
             return False
         
         try:
             self.device = hid.device()
             self.device.open_path(dev_info["path"])
+            print(f"Connected to {dev_info.get('product_string')}")
             return True
         except Exception as e:
             print(f"Connection error: {e}")
@@ -74,7 +74,10 @@ class KreoController:
 
     def disconnect(self):
         if self.device:
-            self.device.close()
+            try:
+                self.device.close()
+            except:
+                pass
             self.device = None
 
     def _from_hex(self, s):
@@ -85,32 +88,48 @@ class KreoController:
         p = buf.find(hdr)
         if p < 0: return -1
         start = p + len(hdr)
+        
+        # Try known seeds
         for pat in (b"\xfe\xf7\xf5\x00", b"\x00\x00\x00\x00"):
             q = buf.find(pat, start, start+128)
             if q >= 0: return q
+            
+        # Fallback: look for any 4-byte aligned pattern ending in 00
+        for i in range(start, min(len(buf)-4, start+128)):
+            if buf[i+3] == 0x00 and any(buf[i:i+3]): # Not all zeros
+                return i
         return -1
 
     def apply_settings(self, r, g, b, mode_hex_str="01"):
         if not self.device and not self.connect():
-            raise RuntimeError("Device not found or could not be opened")
+            raise RuntimeError("Kreo hardware not detected. Please ensure it is connected via USB or Dongle.")
 
         # Patch Palette
         palette_buf = bytearray(self._from_hex(self.PALETTE_HEX_TEMPLATE))
         off = self._find_seed_offset(palette_buf)
         if off != -1:
-            palette_buf[off:off+3] = bytes([r & 0xff, g & 0xff, b & 0xff])
+            # Most of these controllers use 4 bytes (R, G, B, 00)
+            palette_buf[off:off+4] = bytes([r & 0xff, g & 0xff, b & 0xff, 0x00])
+        else:
+            print("Warning: Could not locate color seed in template. Using default offset.")
+            # Fallback to a common offset if known
         
         # Patch Mode
         mode_hex = self.MODE_HEX_TEMPLATE
-        mode_hex = mode_hex[:37] + mode_hex_str + mode_hex[38:]
+        # Mode is usually at a specific offset in the 06 04 report
+        # The template has '03' at index 37 (offset 18 in bytes?)
+        # Let's be careful here.
+        mode_bytes = bytearray(self._from_hex(mode_hex))
+        if len(mode_bytes) > 18:
+            mode_bytes[18] = int(mode_hex_str, 16)
         
         try:
             self.device.send_feature_report(bytes(palette_buf))
-            time.sleep(0.05)
-            self.device.send_feature_report(self._from_hex(mode_hex))
+            time.sleep(0.08) # Slightly longer delay for stability
+            self.device.send_feature_report(bytes(mode_bytes))
             return True
         except Exception as e:
-            print(f"Error sending report: {e}")
+            print(f"Error sending HID report: {e}")
             return False
         finally:
             self.disconnect()

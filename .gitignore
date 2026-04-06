@@ -1,5 +1,7 @@
 build/
 dist/
+dist\ 2/
+"dist 2"/
 __pycache__/
 *.pyc
 .DS_Store
@@ -7,3 +9,4 @@ __pycache__/
 .idea/
 *.spec
 *.zip
+*.app/

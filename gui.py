@@ -16,8 +16,8 @@ class KreoGUI(ctk.CTk):
 
         self.controller = KreoController()
 
-        self.title("Kreo Swarm RGB Controller")
-        self.geometry("600x500")
+        self.title("Kreo Swarm RGB Controller v1.0.3")
+        self.geometry("600x550")
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
@@ -25,6 +25,19 @@ class KreoGUI(ctk.CTk):
         self.r, self.g, self.b = 255, 0, 0
 
         self.setup_ui()
+        self.check_device()
+
+    def check_device(self):
+        # Initial check to see if device is connected
+        try:
+            dev = self.controller.find_device()
+            if dev:
+                name = dev.get('product_string', 'Kreo Keyboard')
+                self.status_label.configure(text=f"Connected: {name}", text_color="#2ecc71")
+            else:
+                self.status_label.configure(text="Device not found. Connect via USB/Dongle.", text_color="#e67e22")
+        except Exception as e:
+            self.status_label.configure(text=f"Check failed: {str(e)}", text_color="#e74c3c")
 
     def create_macos_menu(self):
         # Create a dummy menu to satisfy macOS requirements in bundled apps
@@ -98,10 +111,9 @@ class KreoGUI(ctk.CTk):
             success = self.controller.apply_settings(self.r, self.g, self.b, mode_hex)
             if success:
                 print("Settings applied successfully!")
-                self.status_label.configure(text="Success!", text_color="#2ecc71")
+                self.status_label.configure(text="Applied Successfully!", text_color="#2ecc71")
             else:
-                print("Failed to apply settings: Device not found.")
-                self.status_label.configure(text="Error: Device not found", text_color="#e74c3c")
+                self.status_label.configure(text="Error: Connection failed", text_color="#e74c3c")
         except Exception as e:
             print(f"Exception during apply: {str(e)}")
             self.status_label.configure(text=f"Error: {str(e)}", text_color="#e74c3c")
